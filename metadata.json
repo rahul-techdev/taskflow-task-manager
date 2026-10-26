@@ -1,0 +1,6 @@
+{
+  "name": "TaskFlow - Modern Task Manager",
+  "description": "A clean, modern task management application featuring dashboard summaries, status filtering, category organization, and responsive design.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
