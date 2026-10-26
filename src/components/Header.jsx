@@ -21,7 +21,8 @@ export default function Header({
   userXp,
   theme,
   onThemeChange,
-  onNavigateProfile
+  onNavigateProfile,
+  backendConnected = false
 }) {
   const searchInputRef = useRef(null);
 
@@ -79,7 +80,12 @@ export default function Header({
         <div className="tf-header-greeting">
           <div className="tf-header-title-row">
             <h1 className="tf-header-title">{currentTitle}</h1>
-            <span className="tf-header-tag">Live</span>
+            <span 
+              className={`tf-header-tag ${backendConnected ? 'is-backend-synced' : 'is-offline'}`}
+              title={backendConnected ? 'Express Backend API connected & active' : 'Offline / LocalStorage Mode'}
+            >
+              {backendConnected ? '⚡ API Live' : 'Offline'}
+            </span>
           </div>
           <span className="tf-header-subtitle">
             {dateStr} • {pendingCount === 0 ? 'All caught up ✨' : `${pendingCount} task${pendingCount === 1 ? '' : 's'} remaining`}

@@ -697,12 +697,24 @@ button:active {
   font-size: 0.65rem;
   font-weight: 800;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: var(--radius-full);
   background: var(--accent-gradient);
   color: #ffffff;
   letter-spacing: 0.05em;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.tf-header-tag.is-backend-synced {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.tf-header-tag.is-offline {
+  background: rgba(148, 163, 184, 0.25);
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
 }
 
 .tf-header-subtitle {

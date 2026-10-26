@@ -10,14 +10,17 @@ import {
   ArrowRight, 
   CheckCircle2, 
   Zap,
-  ShieldAlert
+  ShieldAlert,
+  Loader2
 } from 'lucide-react';
+import { api } from '../services/api';
 
 export default function AuthModal({ 
   isOpen, 
   onClose, 
   onLogin, 
-  initialMode = 'welcome' 
+  initialMode = 'welcome',
+  backendConnected = false
 }) {
   const [mode, setMode] = useState(initialMode); // 'welcome' | 'login' | 'signup'
   const [name, setName] = useState('');
@@ -25,6 +28,7 @@ export default function AuthModal({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   if (!isOpen) return null;
@@ -57,18 +61,48 @@ export default function AuthModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    // Frontend demo login without storing password in localStorage
-    const displayName = mode === 'signup' ? name.trim() : (email.split('@')[0] || 'Gen Z Creator');
-    onLogin({
-      name: displayName,
-      username: `@${displayName.toLowerCase().replace(/\s+/g, '')}`,
-      isGuest: false
-    });
-    onClose();
+    setLoading(true);
+    setErrors(prev => ({ ...prev, server: null }));
+
+    try {
+      if (mode === 'signup') {
+        const res = await api.register(name.trim(), email.trim(), password);
+        onLogin({
+          name: res.user.name,
+          username: res.user.username,
+          email: res.user.email,
+          isGuest: false
+        });
+      } else {
+        const res = await api.login(email.trim(), password);
+        onLogin({
+          name: res.user.name,
+          username: res.user.username,
+          email: res.user.email,
+          isGuest: false
+        });
+      }
+      onClose();
+    } catch (err) {
+      if (err.data?.message) {
+        setErrors(prev => ({ ...prev, server: err.data.message }));
+      } else {
+        // Fallback for offline demo mode
+        const displayName = mode === 'signup' ? name.trim() : (email.split('@')[0] || 'Gen Z Creator');
+        onLogin({
+          name: displayName,
+          username: `@${displayName.toLowerCase().replace(/\s+/g, '')}`,
+          isGuest: false
+        });
+        onClose();
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGuestLogin = () => {
@@ -102,11 +136,35 @@ export default function AuthModal({
           <X size={18} />
         </button>
 
-        {/* Demo Disclaimer Banner */}
+        {/* Backend / Demo Status Banner */}
         <div className="tf-auth-demo-badge">
-          <ShieldAlert size={14} />
-          <span>Frontend Demo • No real credentials stored</span>
+          {backendConnected ? (
+            <>
+              <CheckCircle2 size={14} style={{ color: '#10b981' }} />
+              <span>Fullstack Mode • Connected to Express Backend</span>
+            </>
+          ) : (
+            <>
+              <ShieldAlert size={14} />
+              <span>Demo Mode • Local Storage</span>
+            </>
+          )}
         </div>
+
+        {errors.server && (
+          <div style={{
+            margin: '10px 20px -6px',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#ef4444',
+            fontSize: '0.82rem',
+            textAlign: 'center'
+          }}>
+            {errors.server}
+          </div>
+        )}
 
         {/* Welcome View */}
         {mode === 'welcome' && (

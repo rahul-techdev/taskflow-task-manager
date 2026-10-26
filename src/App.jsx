@@ -16,6 +16,7 @@ import AuthModal from './components/AuthModal';
 import XpCelebration from './components/XpCelebration';
 import { INITIAL_TASKS } from './data/sampleTasks';
 import { DEFAULT_PROFILE } from './data/gamification';
+import { api } from './services/api';
 
 const STORAGE_KEY = 'taskflow_tasks_v1';
 const VIEW_MODE_KEY = 'taskflow_view_mode';
@@ -117,8 +118,68 @@ export default function App() {
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  // Backend connection state
+  const [backendConnected, setBackendConnected] = useState(false);
+
   // Toast feedback state
   const [toast, setToast] = useState(null);
+
+  // Synchronize with Express Backend API on Mount
+  useEffect(() => {
+    let isMounted = true;
+    async function syncWithBackend() {
+      try {
+        const health = await api.checkHealth();
+        if (health.connected && isMounted) {
+          setBackendConnected(true);
+
+          // Check if user has an active session token
+          try {
+            const me = await api.getMe();
+            if (me && isMounted) {
+              setProfile(prev => ({
+                ...prev,
+                name: me.name || prev.name,
+                username: me.username || prev.username,
+                email: me.email || prev.email,
+                isGuest: false
+              }));
+            }
+          } catch {
+            // Guest or unauthenticated session
+          }
+
+          // Sync tasks from backend
+          const remoteTasks = await api.getTasks();
+          if (Array.isArray(remoteTasks) && remoteTasks.length > 0 && isMounted) {
+            setTasks(remoteTasks);
+          }
+
+          // Sync profile & gamification data
+          const remoteData = await api.getProfile();
+          if (remoteData?.profile && isMounted) {
+            setProfile(prev => ({ ...prev, ...remoteData.profile }));
+          }
+          if (typeof remoteData?.userXp === 'number' && isMounted) {
+            setUserXp(remoteData.userXp);
+          }
+          if (Array.isArray(remoteData?.rewardedTaskIds) && isMounted) {
+            setRewardedTaskIds(remoteData.rewardedTaskIds);
+          }
+
+          // Sync settings
+          const remoteSettings = await api.getSettings();
+          if (remoteSettings && isMounted) {
+            setSettings(prev => ({ ...prev, ...remoteSettings }));
+          }
+        }
+      } catch (err) {
+        console.warn('Backend unavailable, operating in local-only mode:', err);
+      }
+    }
+    syncWithBackend();
+    return () => { isMounted = false; };
+  }, []);
 
   // Apply theme to document element
   useEffect(() => {
@@ -251,6 +312,11 @@ export default function App() {
         t.id === id ? { ...t, completed: isNowCompleted } : t
       );
 
+      // Async sync to Express backend
+      api.patchTask(id, { completed: isNowCompleted }).catch(err => {
+        console.warn('Backend patch task error:', err);
+      });
+
       // Gamification: Award XP only if marking complete AND not already rewarded for this task
       if (isNowCompleted) {
         const alreadyRewarded = rewardedTaskIds.includes(id);
@@ -258,6 +324,11 @@ export default function App() {
           const xpEarned = target.priority === 'high' ? 50 : 25;
           setUserXp(prev => prev + xpEarned);
           setRewardedTaskIds(prev => [...prev, id]);
+
+          // Async award XP on backend
+          api.addXp(xpEarned, id).catch(err => {
+            console.warn('Backend add XP error:', err);
+          });
 
           if (settings.celebrations) {
             setCelebration({
@@ -300,12 +371,23 @@ export default function App() {
       if (existsIndex >= 0) {
         updated = [...prevTasks];
         updated[existsIndex] = taskData;
+        api.updateTask(taskData.id, taskData).catch(err => {
+          console.warn('Backend update task error:', err);
+        });
         setToast({
           message: 'Task updated successfully ✨',
           type: 'success'
         });
       } else {
-        updated = [taskData, ...prevTasks];
+        const newTask = {
+          ...taskData,
+          id: taskData.id || `task-${Date.now()}`,
+          createdAt: taskData.createdAt || new Date().toISOString()
+        };
+        updated = [newTask, ...prevTasks];
+        api.createTask(newTask).catch(err => {
+          console.warn('Backend create task error:', err);
+        });
         setToast({
           message: 'New task created! Ready for action 🚀',
           type: 'success'
@@ -340,6 +422,10 @@ export default function App() {
     setTasks(prevTasks => prevTasks.filter(t => t.id !== removedTask.id));
     setIsDeleteModalOpen(false);
     setTaskToDelete(null);
+
+    api.deleteTask(removedTask.id).catch(err => {
+      console.warn('Backend delete task error:', err);
+    });
 
     setToast({
       message: `Deleted "${removedTask.title.slice(0, 24)}..."`,
@@ -392,8 +478,17 @@ export default function App() {
   }, []);
 
   // Reset to default sample tasks
-  const handleResetTasks = useCallback(() => {
-    setTasks(INITIAL_TASKS);
+  const handleResetTasks = useCallback(async () => {
+    try {
+      const resetList = await api.resetTasks();
+      if (Array.isArray(resetList)) {
+        setTasks(resetList);
+      } else {
+        setTasks(INITIAL_TASKS);
+      }
+    } catch {
+      setTasks(INITIAL_TASKS);
+    }
     setToast({
       message: 'Demo tasks restored to defaults!',
       type: 'info'
@@ -403,6 +498,9 @@ export default function App() {
   // Clear completed tasks
   const handleClearCompleted = useCallback(() => {
     setTasks(prev => prev.filter(t => !t.completed));
+    api.clearCompletedTasks().catch(err => {
+      console.warn('Backend clear completed error:', err);
+    });
     setToast({
       message: 'Completed tasks cleared from backlog.',
       type: 'info'
@@ -412,22 +510,36 @@ export default function App() {
   // Profile update handler
   const handleUpdateProfile = useCallback((updatedProfile) => {
     setProfile(updatedProfile);
+    api.updateProfile(updatedProfile).catch(err => {
+      console.warn('Backend update profile error:', err);
+    });
     setToast({
       message: 'Profile preferences saved! 🌸',
       type: 'success'
     });
   }, []);
 
-  // Demo Login handler
+  // Settings update handler (synced to backend API)
+  const handleUpdateSettings = useCallback((partialSettings) => {
+    setSettings(prev => {
+      const updated = { ...prev, ...partialSettings };
+      api.updateSettings(updated).catch(err => {
+        console.warn('Backend update settings error:', err);
+      });
+      return updated;
+    });
+  }, []);
+
+  // Login handler
   const handleLogin = useCallback((userData) => {
     setProfile(prev => ({
       ...prev,
       name: userData.name,
       username: userData.username,
-      isGuest: userData.isGuest
+      isGuest: userData.isGuest ?? false
     }));
     setToast({
-      message: `Signed in as ${userData.name} (Demo Mode) ⚡`,
+      message: `Signed in as ${userData.name}! ⚡`,
       type: 'success'
     });
   }, []);
@@ -539,6 +651,7 @@ export default function App() {
           onThemeChange={setTheme}
           onNavigateProfile={() => handleSelectNav('profile')}
           onOpenAuth={() => setIsAuthModalOpen(true)}
+          backendConnected={backendConnected}
         />
 
         {/* Dashboard / Main Content View */}
@@ -563,11 +676,11 @@ export default function App() {
                 theme={theme}
                 onThemeChange={setTheme}
                 soundEffects={settings.soundEffects}
-                onToggleSound={(val) => setSettings(s => ({ ...s, soundEffects: val }))}
+                onToggleSound={(val) => handleUpdateSettings({ soundEffects: val })}
                 celebrations={settings.celebrations}
-                onToggleCelebrations={(val) => setSettings(s => ({ ...s, celebrations: val }))}
+                onToggleCelebrations={(val) => handleUpdateSettings({ celebrations: val })}
                 dailyGoal={settings.dailyGoal}
-                onChangeDailyGoal={(val) => setSettings(s => ({ ...s, dailyGoal: val }))}
+                onChangeDailyGoal={(val) => handleUpdateSettings({ dailyGoal: val })}
                 onResetTasks={handleResetTasks}
                 onClearCompleted={handleClearCompleted}
                 tasks={tasks}
@@ -592,6 +705,7 @@ export default function App() {
                 settings={settings}
                 onAwardXp={(amount, message) => {
                   setUserXp(prev => prev + amount);
+                  api.addXp(amount).catch(err => console.warn('Backend add XP error:', err));
                   if (settings.celebrations) {
                     setCelebration({ amount, message });
                   }
@@ -691,6 +805,7 @@ export default function App() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onLogin={handleLogin}
+        backendConnected={backendConnected}
       />
 
       {/* Micro XP Celebration Bubble */}

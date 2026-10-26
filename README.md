@@ -29,10 +29,12 @@
 ## 🛠️ Tech Stack
 
 - **Frontend**: React 19, JavaScript (ESNext), React Hooks
-- **Bundler & Dev Server**: Vite 8
+- **Backend**: Node.js, Express.js REST API, CORS middleware
+- **Database & Storage**: Atomic JSON file-backed database (`server/data/db.json`) + Client-side LocalStorage offline resilience
+- **Bundler & Dev Server**: Vite 8 with `/api` reverse proxying
 - **Styling**: Tailwind CSS v4, Custom CSS Variables, Glassmorphism Backdrop Blurs
+- **Authentication**: Salted PBKDF2 Password Hashing & Bearer Session Tokens
 - **Icons**: Lucide React
-- **State & Storage**: Client-side React State with LocalStorage persistence (zero external backend dependency required)
 - **CI/CD**: GitHub Actions (`.github/workflows/main.yml`)
 
 ---
@@ -51,14 +53,45 @@ cd <YOUR-REPO-NAME>
 
 ### 2. Install dependencies
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
 
-### 3. Run development server
+### 3. Run fullstack development (Frontend + Backend)
 ```bash
-npm run dev
+npm run dev:all
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+- **Frontend App**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:5000](http://localhost:5000) (Proxied via `/api`)
+
+Alternatively, run them separately:
+- `npm run dev` — Starts Vite dev server on port 3000
+- `npm run server` — Starts Express backend API server on port 5000
+- `npm run server:watch` — Starts backend with live file reload
+
+---
+
+## 📡 REST API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Health check and server status |
+| `GET` | `/api/tasks` | Get all tasks (supports `?category=`, `?status=`, `?priority=`, `?search=`, `?sortBy=`) |
+| `GET` | `/api/tasks/:id` | Get single task by ID |
+| `POST` | `/api/tasks` | Create a new task |
+| `PUT` | `/api/tasks/:id` | Full update of task |
+| `PATCH` | `/api/tasks/:id` | Partial update (toggle complete, priority, etc.) |
+| `DELETE` | `/api/tasks/:id` | Delete a task |
+| `POST` | `/api/tasks/clear-completed` | Bulk remove completed tasks |
+| `POST` | `/api/tasks/reset` | Restore initial sample demo dataset |
+| `GET` | `/api/stats` | Aggregated dashboard analytics & completion rates |
+| `GET` | `/api/profile` | Retrieve user profile, XP & gamification records |
+| `PUT` | `/api/profile` | Update profile avatar, name, and bio |
+| `POST` | `/api/profile/xp` | Award XP bonus |
+| `GET` | `/api/settings` | Get user settings |
+| `PUT` | `/api/settings` | Update user settings |
+| `POST` | `/api/auth/register` | Register new user account (PBKDF2 salted hash) |
+| `POST` | `/api/auth/login` | Authenticate user and generate session token |
+| `GET` | `/api/auth/me` | Fetch authenticated session user |
 
 ### 4. Build for production
 ```bash

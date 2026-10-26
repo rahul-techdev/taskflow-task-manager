@@ -1,0 +1,140 @@
+{
+  "tasks": [
+    {
+      "id": "task-1792990662050",
+      "title": "Build Fullstack Backend with Express",
+      "description": "Node.js Express backend with REST APIs and persistent database",
+      "priority": "high",
+      "category": "Development",
+      "dueDate": "2026-10-26",
+      "completed": true,
+      "createdAt": "2026-10-26T04:57:42.050Z",
+      "updatedAt": "2026-10-26T04:58:55.459Z"
+    },
+    {
+      "id": "task-1",
+      "title": "Finalize quarterly product roadmap presentation",
+      "description": "Review key milestones with the product engineering team and compile slides for the executive leadership sync.",
+      "priority": "high",
+      "category": "Work",
+      "dueDate": "2026-10-26",
+      "completed": false,
+      "createdAt": "2026-10-25T04:38:27.884Z",
+      "updatedAt": "2026-10-25T04:38:27.884Z"
+    },
+    {
+      "id": "task-2",
+      "title": "Design updated checkout flow wireframes",
+      "description": "Create high-fidelity mobile and desktop responsive checkout mockups in Figma with single-click payment option.",
+      "priority": "high",
+      "category": "Design",
+      "dueDate": "2026-10-27",
+      "completed": false,
+      "createdAt": "2026-10-25T10:38:27.884Z",
+      "updatedAt": "2026-10-25T10:38:27.884Z"
+    },
+    {
+      "id": "task-3",
+      "title": "Schedule quarterly dental checkup",
+      "description": "Call Dr. Martinez dental clinic to confirm routine cleaning and examination appointment for next Friday.",
+      "priority": "low",
+      "category": "Personal",
+      "dueDate": "2026-10-29",
+      "completed": false,
+      "createdAt": "2026-10-24T04:38:27.884Z",
+      "updatedAt": "2026-10-24T04:38:27.884Z"
+    },
+    {
+      "id": "task-4",
+      "title": "Conduct weekly frontend team code review",
+      "description": "Audit pull requests for performance optimizations, component modularity, and accessibility standards.",
+      "priority": "medium",
+      "category": "Work",
+      "dueDate": "2026-10-26",
+      "completed": true,
+      "createdAt": "2026-10-25T20:38:27.884Z",
+      "updatedAt": "2026-10-25T20:38:27.884Z"
+    },
+    {
+      "id": "task-5",
+      "title": "Order new ergonomic desk chair",
+      "description": "Compare warranty, lumbar support specifications, and delivery timelines between top 3 choices.",
+      "priority": "medium",
+      "category": "Personal",
+      "dueDate": "2026-10-30",
+      "completed": false,
+      "createdAt": "2026-10-24T22:38:27.884Z",
+      "updatedAt": "2026-10-24T22:38:27.884Z"
+    },
+    {
+      "id": "task-6",
+      "title": "Update API documentation for v2.4 release",
+      "description": "Document breaking changes, new query parameters, and add interactive cURL code examples.",
+      "priority": "medium",
+      "category": "Development",
+      "dueDate": "2026-10-28",
+      "completed": true,
+      "createdAt": "2026-10-23T04:38:27.884Z",
+      "updatedAt": "2026-10-23T04:38:27.884Z"
+    },
+    {
+      "id": "task-7",
+      "title": "Meal prep healthy lunches for the week",
+      "description": "Prepare Mediterranean quinoa bowls, roasted seasonal vegetables, and marinated grilled chicken portions.",
+      "priority": "low",
+      "category": "Health",
+      "dueDate": "2026-10-27",
+      "completed": true,
+      "createdAt": "2026-10-25T16:38:27.884Z",
+      "updatedAt": "2026-10-26T14:47:45.562Z"
+    }
+  ],
+  "profile": {
+    "name": "Alex Rivera",
+    "username": "@alexrivera",
+    "email": "alex@example.com",
+    "bio": "Product Designer & Frontend Tinkerer • Building digital toys and aesthetic productivity systems ⚡",
+    "avatarId": "zap",
+    "streak": 4,
+    "lastActiveDate": "2026-10-26",
+    "isGuest": true,
+    "joinedDate": "October 2024"
+  },
+  "userXp": 200,
+  "rewardedTaskIds": [
+    "task-4",
+    "task-6",
+    "task-7"
+  ],
+  "settings": {
+    "celebrations": true,
+    "soundEffects": true,
+    "dailyGoal": 5
+  },
+  "users": [
+    {
+      "id": "user-demo-1",
+      "name": "Alex Rivera",
+      "email": "alex@example.com",
+      "username": "@alexrivera",
+      "passwordHash": "2e775ffa419e8c8adcb5c830e6071052:a6c28372cbf37983ccdc579e2f9e042ece5e6134491f06ee129e6fba61511397ea180855b72659e41d2af66cfa3c5e0758bdb546e1721c5e0c6785a0acef5c7c",
+      "createdAt": "2026-10-26T04:38:27.885Z"
+    },
+    {
+      "id": "user-1793025718494",
+      "name": "Test User",
+      "email": "tester_1793025718438@example.com",
+      "username": "@testuser",
+      "passwordHash": "1b56d4093750f4a5af8ca95f8b548d75:a449c73eebd63057214620a87af6b013bcbfc7cbe665b6ce50282557951d6158c959c1da35fa9352b568a899b6e956bb28ae6d8b91a98e8e9d0a8a8823693411",
+      "createdAt": "2026-10-26T14:41:58.495Z"
+    }
+  ],
+  "sessions": {
+    "e6961fc2494ec43ab03311e474200453adc93ace270fef37cb20fbe7ee93802f": {
+      "userId": "user-1793025718494",
+      "email": "tester_1793025718438@example.com",
+      "name": "Test User",
+      "createdAt": "2026-10-26T14:41:58.495Z"
+    }
+  }
+}
